@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func0;
 import rx.schedulers.Schedulers;
 
 public class ObservableCreate {
@@ -23,12 +25,15 @@ public class ObservableCreate {
    * defer
    * */
   public static void main(String[] args) {
-    interval();
+    //    interval();
+    //				range();
+    //				repeat();
+    defer();
   }
 
   /** ************* 创建Observable **************** */
 
-  /** 1、create */
+  /** 1、create --Rxjava2 */
   private static void create() {
     final Person person = new Person();
 
@@ -113,11 +118,13 @@ public class ObservableCreate {
     // ②：Observable将数组中的元素逐个进行发送，在发送过程中转换为Observable对象。
     // ③：from还可以将一个Futrue或Iterable转为Observable发射出去，这块用的不多，暂时先放到后面，讲完Rxjava打算讲讲多线程，到时候再回过来看一下这种情况；
     // Future模式:@See <a href="https://www.jianshu.com/p/949d44f3d9e3">Java多线程 - Future模式</a>
+
   }
 
-  /** interval */
+  /** 4 、interval */
   private static void interval() {
 
+    // 创建以1秒为事件间隔发送整数序列的Observable
     Observable.interval(1, TimeUnit.SECONDS)
         .subscribe(
             new Action1<Long>() {
@@ -149,5 +156,61 @@ public class ObservableCreate {
 
     // ①：发现不能正常的1、2、3、4、5这样，是因为interval内默认是Schedulers.computation()线程
     // ②：Rxjava2中对 interval 扩展了一个操作符 intervalRange
+  }
+
+  /*5 、range*/
+  private static void range() {
+    // 发射一个范围内的有序整数序列，并且我们可以指定范围的起始和长度
+    Observable.range(0, 5)
+        .subscribe(
+            new Action1<Integer>() {
+              @Override
+              public void call(Integer integer) {
+                System.out.print(integer);
+              }
+            });
+
+    Observable.range(1, 9, Schedulers.trampoline()).subscribeOn(Schedulers.io()).subscribe();
+  }
+
+  /*6、repeat*/
+  private static void repeat() {
+    // repeat操作符,创建一个以N次重复发送数据的Observable
+    Observable.range(1, 5)
+        .repeat(3)
+        .subscribe(
+            new Action1<Integer>() {
+              @Override
+              public void call(Integer integer) {
+                System.out.print(integer);
+              }
+            });
+  }
+
+  /*7、 defer*/
+  private static void defer() {
+
+    Observable.defer(
+            new Func0<Observable<Integer>>() {
+              @Override
+              public Observable<Integer> call() {
+                System.out.print("1");
+                return Observable.just(1);
+              }
+            })
+        .subscribe(
+            new Action1<Integer>() {
+              @Override
+              public void call(Integer integer) {
+                System.out.print("2");
+              }
+            });
+
+    // 注：内部也调用了onCreate方法，只是defer操作符传递的OnSubscribe是OnSubscribeDefer
+    // OnSubscribeDefer也是继承自OnSubscribe，那么他的call方法肯定也是在订阅的时候被调用
+    // （就是说订阅的时候才创建这个observable，并且每次订阅都会创建一个新的observable）
+
+    // defer 就相当于懒加载，只有等observable 与observer建立了订阅关系时，observable才会建立
+    // 所以可以实现延迟订阅@See <a https://www.jianshu.com/p/c83996149f5b />
   }
 }
