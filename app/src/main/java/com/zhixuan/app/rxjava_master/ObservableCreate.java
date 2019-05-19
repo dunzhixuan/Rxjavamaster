@@ -25,10 +25,11 @@ public class ObservableCreate {
    * defer
    * */
   public static void main(String[] args) {
-    //    interval();
+//        interval();
     //				range();
     //				repeat();
-    defer();
+//    defer();
+      backPressure1();
   }
 
   /** ************* 创建Observable **************** */
@@ -213,4 +214,37 @@ public class ObservableCreate {
     // defer 就相当于懒加载，只有等observable 与observer建立了订阅关系时，observable才会建立
     // 所以可以实现延迟订阅@See <a https://www.jianshu.com/p/c83996149f5b />
   }
+
+    private static void backPressure1() {
+        Observable.interval(1, TimeUnit.SECONDS)
+                .subscribe(
+                        new Action1<Long>() {
+                            @Override
+                            public void call(Long aLong) {
+                                // ①
+                                System.out.println(aLong);
+                            }
+                        });
+
+        // 被观察者在主线程中，每1ms发送一个事件
+//        Observable.interval(1, TimeUnit.MILLISECONDS)
+//                // .subscribeOn(Schedulers.newThread())
+//                // 将观察者的工作放在新线程环境中
+////        .observeOn(Schedulers.newThread())
+//                // 观察者处理每1000ms才处理一个事件
+//                .subscribe(
+//                        new Action1<Long>() {
+//                            @Override
+//                            public void call(Long aLong) {
+//                                try {
+//                                    Thread.sleep(1000);
+//                                    System.out.print("-->sleep" + aLong);
+//                                } catch (InterruptedException e) {
+//                                    System.out.print("-->" + e);
+//                                }
+////                Log.w("TAG", "---->" + aLong);
+//                                System.out.print("-->" + aLong);
+//                            }
+//                        });
+    }
 }
