@@ -27,5 +27,6 @@ public class RxThread {
 				/*https://www.jianshu.com/p/1ed30bb39e76*/
 				Observable.just("1").subscribeOn(Schedulers.trampoline()); /*创建一个新的线程*/
 				Observable.just("1").subscribeOn(Schedulers.computation());/*适用于和CPU有关的任务，可以充分利用CPU的计算资源*/
+
 		}
 }

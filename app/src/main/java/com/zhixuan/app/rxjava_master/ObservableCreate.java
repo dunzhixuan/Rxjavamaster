@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func0;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class ObservableCreate {
@@ -25,11 +25,11 @@ public class ObservableCreate {
    * defer
    * */
   public static void main(String[] args) {
-//        interval();
+    //        interval();
     //				range();
     //				repeat();
-//    defer();
-      backPressure1();
+    //    defer();
+    backPressure1();
   }
 
   /** ************* 创建Observable **************** */
@@ -74,6 +74,47 @@ public class ObservableCreate {
     // ②：unsubscribe:解除监听,在 subscribe() 之后， Observable 会持有 Subscriber 的引用，这个引用如果不能及时被释放，将有内存泄露的风险。
     // ③：RxJavaHooks.onCreate(f)：通过Hook机制加入call方法,Hook机制:@see <a
     // href="https://www.jianshu.com/p/c431ad21f071">Android Hook 机制之简单实战</a>
+
+    // onNext
+    Observable.just("1")
+        .subscribe(
+            new Action1<String>() {
+              @Override
+              public void call(String s) {}
+            });
+
+    // onCompleted
+    Action0 action0 = new Action0(){
+          @Override
+          public void call() {
+
+          }
+      };
+
+    Observable.just("1").subscribe(new Action1<String>() {
+        @Override
+        public void call(String s) {
+
+        }
+    }, new Action1<Throwable>() {
+        @Override
+        public void call(Throwable throwable) {
+
+        }
+    },action0);
+
+    Observable.just("1").map(new Func1<String, Integer>() {
+        @Override
+        public Integer call(String s) {
+            return null;
+        }
+    }).subscribe(new Action1<Integer>() {
+        @Override
+        public void call(Integer integer) {
+
+        }
+    });
+
   }
 
   /** 2、just */
@@ -215,36 +256,36 @@ public class ObservableCreate {
     // 所以可以实现延迟订阅@See <a https://www.jianshu.com/p/c83996149f5b />
   }
 
-    private static void backPressure1() {
-        Observable.interval(1, TimeUnit.SECONDS)
-                .subscribe(
-                        new Action1<Long>() {
-                            @Override
-                            public void call(Long aLong) {
-                                // ①
-                                System.out.println(aLong);
-                            }
-                        });
+  private static void backPressure1() {
+    Observable.interval(1, TimeUnit.SECONDS)
+        .subscribe(
+            new Action1<Long>() {
+              @Override
+              public void call(Long aLong) {
+                // ①
+                System.out.println(aLong);
+              }
+            });
 
-        // 被观察者在主线程中，每1ms发送一个事件
-//        Observable.interval(1, TimeUnit.MILLISECONDS)
-//                // .subscribeOn(Schedulers.newThread())
-//                // 将观察者的工作放在新线程环境中
-////        .observeOn(Schedulers.newThread())
-//                // 观察者处理每1000ms才处理一个事件
-//                .subscribe(
-//                        new Action1<Long>() {
-//                            @Override
-//                            public void call(Long aLong) {
-//                                try {
-//                                    Thread.sleep(1000);
-//                                    System.out.print("-->sleep" + aLong);
-//                                } catch (InterruptedException e) {
-//                                    System.out.print("-->" + e);
-//                                }
-////                Log.w("TAG", "---->" + aLong);
-//                                System.out.print("-->" + aLong);
-//                            }
-//                        });
-    }
+    // 被观察者在主线程中，每1ms发送一个事件
+    //        Observable.interval(1, TimeUnit.MILLISECONDS)
+    //                // .subscribeOn(Schedulers.newThread())
+    //                // 将观察者的工作放在新线程环境中
+    ////        .observeOn(Schedulers.newThread())
+    //                // 观察者处理每1000ms才处理一个事件
+    //                .subscribe(
+    //                        new Action1<Long>() {
+    //                            @Override
+    //                            public void call(Long aLong) {
+    //                                try {
+    //                                    Thread.sleep(1000);
+    //                                    System.out.print("-->sleep" + aLong);
+    //                                } catch (InterruptedException e) {
+    //                                    System.out.print("-->" + e);
+    //                                }
+    ////                Log.w("TAG", "---->" + aLong);
+    //                                System.out.print("-->" + aLong);
+    //                            }
+    //                        });
+  }
 }
