@@ -17,7 +17,7 @@ public class BackPressure {
 
   public static void main(String[] args) {
     //		  backPressure();
-    //      buffer();
+//          buffer();
     backPressureDrop();
   }
 
@@ -77,37 +77,37 @@ public class BackPressure {
 
   // <a https://www.jianshu.com/p/2c4799fa91a4 />
   private static void backPressureDrop() {
-    Observable.interval(1, TimeUnit.MILLISECONDS, Schedulers.trampoline())
-        .onBackpressureBuffer(1000) // 设置一个大小为1000的缓存区
-        .observeOn(Schedulers.newThread())
-        .subscribe(
-            new Subscriber<Long>() {
-
-              @Override
-              public void onStart() {
-                System.out.print("start" + "\n");
-              }
-
-              @Override
-              public void onCompleted() {}
-
-              @Override
-              public void onError(Throwable e) {
-                System.out.print("ERROR" + e.toString() + "\n");
-              }
-
-              @Override
-              public void onNext(Long aLong) {
-                System.out.print("-->" + aLong + "\n");
-                try {
-                  Thread.sleep(100);
-                  // request(1);
-                  // request(Long.MAX_VALUE);
-                } catch (InterruptedException e) {
-                  e.printStackTrace();
-                }
-              }
-            });
+//    Observable.interval(1, TimeUnit.MILLISECONDS, Schedulers.trampoline())
+//        .onBackpressureBuffer(1000) // 设置一个大小为1000的缓存区
+//        .observeOn(Schedulers.newThread())
+//        .subscribe(
+//            new Subscriber<Long>() {
+//
+//              @Override
+//              public void onStart() {
+//                System.out.print("start" + "\n");
+//              }
+//
+//              @Override
+//              public void onCompleted() {}
+//
+//              @Override
+//              public void onError(Throwable e) {
+//                System.out.print("ERROR" + e.toString() + "\n");
+//              }
+//
+//              @Override
+//              public void onNext(Long aLong) {
+//                System.out.print("-->" + aLong + "\n");
+//                try {
+//                  Thread.sleep(100);
+//                   request(1);
+//                  // request(Long.MAX_VALUE);
+//                } catch (InterruptedException e) {
+//                  e.printStackTrace();
+//                }
+//              }
+//            });
 
 
       Observable.interval(1, TimeUnit.MILLISECONDS,Schedulers.trampoline())

@@ -26,10 +26,10 @@ public class ObservableCreate {
    * */
   public static void main(String[] args) {
     //        interval();
-    //				range();
-    //				repeat();
-    //    defer();
-    backPressure1();
+    //    				range();
+    //    				repeat();
+    defer();
+    //    backPressure1();
   }
 
   /** ************* 创建Observable **************** */
@@ -84,37 +84,37 @@ public class ObservableCreate {
             });
 
     // onCompleted
-    Action0 action0 = new Action0(){
+    Action0 action0 =
+        new Action0() {
           @Override
-          public void call() {
+          public void call() {}
+        };
 
-          }
-      };
+    Observable.just("1")
+        .subscribe(
+            new Action1<String>() {
+              @Override
+              public void call(String s) {}
+            },
+            new Action1<Throwable>() {
+              @Override
+              public void call(Throwable throwable) {}
+            },
+            action0);
 
-    Observable.just("1").subscribe(new Action1<String>() {
-        @Override
-        public void call(String s) {
-
-        }
-    }, new Action1<Throwable>() {
-        @Override
-        public void call(Throwable throwable) {
-
-        }
-    },action0);
-
-    Observable.just("1").map(new Func1<String, Integer>() {
-        @Override
-        public Integer call(String s) {
-            return null;
-        }
-    }).subscribe(new Action1<Integer>() {
-        @Override
-        public void call(Integer integer) {
-
-        }
-    });
-
+    Observable.just("1")
+        .map(
+            new Func1<String, Integer>() {
+              @Override
+              public Integer call(String s) {
+                return null;
+              }
+            })
+        .subscribe(
+            new Action1<Integer>() {
+              @Override
+              public void call(Integer integer) {}
+            });
   }
 
   /** 2、just */
@@ -167,15 +167,15 @@ public class ObservableCreate {
   private static void interval() {
 
     // 创建以1秒为事件间隔发送整数序列的Observable
-    Observable.interval(1, TimeUnit.SECONDS)
-        .subscribe(
-            new Action1<Long>() {
-              @Override
-              public void call(Long aLong) {
-                // ①
-                System.out.println(aLong);
-              }
-            });
+    Observable observable = Observable.interval(1, TimeUnit.SECONDS);
+    observable.subscribe(
+        new Action1<Long>() {
+          @Override
+          public void call(Long aLong) {
+            // ①
+            System.out.println(aLong);
+          }
+        });
 
     Observable.interval(1, TimeUnit.SECONDS, Schedulers.trampoline())
         .subscribe(
@@ -212,7 +212,7 @@ public class ObservableCreate {
               }
             });
 
-    Observable.range(1, 9, Schedulers.trampoline()).subscribeOn(Schedulers.io()).subscribe();
+    //    Observable.range(1, 9, Schedulers.trampoline()).subscribeOn(Schedulers.io()).subscribe();
   }
 
   /*6、repeat*/
@@ -232,21 +232,30 @@ public class ObservableCreate {
   /*7、 defer*/
   private static void defer() {
 
-    Observable.defer(
-            new Func0<Observable<Integer>>() {
-              @Override
-              public Observable<Integer> call() {
-                System.out.print("1");
-                return Observable.just(1);
-              }
-            })
-        .subscribe(
-            new Action1<Integer>() {
-              @Override
-              public void call(Integer integer) {
-                System.out.print("2");
-              }
-            });
+    Observable observable =
+        Observable.just(1)
+            .map(
+                new Func1<Integer, Integer>() {
+                  @Override
+                  public Integer call(Integer o) {
+                    System.out.println("1");
+                    return 1;
+                  }
+                });
+    observable.subscribe(
+        new Action1<Integer>() {
+          @Override
+          public void call(Integer integer) {
+            System.out.print("2");
+          }
+        });
+    observable.subscribe(
+        new Action1() {
+          @Override
+          public void call(Object o) {
+            System.out.print("3");
+          }
+        });
 
     // 注：内部也调用了onCreate方法，只是defer操作符传递的OnSubscribe是OnSubscribeDefer
     // OnSubscribeDefer也是继承自OnSubscribe，那么他的call方法肯定也是在订阅的时候被调用
