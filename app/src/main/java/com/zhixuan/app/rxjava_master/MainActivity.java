@@ -1,8 +1,10 @@
 package com.zhixuan.app.rxjava_master;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -26,7 +28,17 @@ public class MainActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-      processUrlIpByOneFlatMap();
+      if (!isTaskRoot()) {
+        finish();
+        return;
+      }
+    findViewById(R.id.txv).setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            startActivity(new Intent(MainActivity.this,SecondActivity.class));
+        }
+    });
+//      processUrlIpByOneFlatMap();
     // 在Android 环境下可以正常输出Log
     //        Observable.interval(1, TimeUnit.SECONDS)
     //                .subscribe(
