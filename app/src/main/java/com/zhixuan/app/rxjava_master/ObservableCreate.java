@@ -28,8 +28,10 @@ public class ObservableCreate {
     //        interval();
     //    				range();
     //    				repeat();
-    defer();
+//    defer();
     //    backPressure1();
+//      from();
+      create();
   }
 
   /** ************* 创建Observable **************** */
@@ -56,13 +58,20 @@ public class ObservableCreate {
                   }
 
                   @Override
-                  public void onNext(Person person) {}
+                  public void onNext(Person person) {
+                      onError(new Throwable());
+                      System.out.println("onNext");
+                  }
 
                   @Override
-                  public void onCompleted() {}
+                  public void onCompleted() {
+
+                  }
 
                   @Override
-                  public void onError(Throwable e) {}
+                  public void onError(Throwable e) {
+                      System.out.println("onError");
+                  }
                 });
 
     // ②
@@ -134,6 +143,15 @@ public class ObservableCreate {
     // 应用场景:遍历数组
     String[] a = new String[] {"1", "2"};
     Observable.from(a)
+            .doOnSubscribe(new Action0() {
+                @Override
+                public void call() {
+                    for (int i = 0 ; i < 10000 ; i ++){
+                        System.out.println("doOnSubscribe");
+                    }
+                    System.out.println("100000");
+                }
+            })
         .subscribe(
             new Action1<String>() {
               @Override
