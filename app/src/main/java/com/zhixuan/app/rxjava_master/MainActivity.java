@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -16,6 +17,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,8 +33,33 @@ public class MainActivity extends AppCompatActivity {
       return;
     }
 
+    //    ConnectableObservable<Long> observable = interval();
+    //    observable.connect();
+    //    try {
+    //      Thread.sleep(2000);
+    //    } catch (InterruptedException e) {
+    //      e.printStackTrace();
+    //    }
+    //    observable.observeOn(Schedulers.newThread()).subscribe(
+    //        new Subscriber<Long>() {
+    //          @Override
+    //          public void onCompleted() {}
+    //
+    //          @Override
+    //          public void onError(Throwable e) {
+    //		          Log.e("TBG",""+e.toString());
+    //          }
+    //
+    //          @Override
+    //          public void onNext(Long l) {
+    //            Log.e("TBG",""+l);
+    //          }
+    //        });
+
+    intervalBackPressure();
+
     //    subscribeOn();
-    concat();
+    //    concat();
 
     //      processUrlIpByOneFlatMap();
     // 在Android 环境下可以正常输出Log
@@ -186,6 +213,12 @@ public class MainActivity extends AppCompatActivity {
     // @TODO 可以不调用subscriber.onError(e);或者调用subscriber.onNext(your value);
   }
 
+  public static ConnectableObservable<Long> interval() {
+    ConnectableObservable<Long> observable =
+        Observable.interval(1, TimeUnit.SECONDS, Schedulers.trampoline()).take(1000).publish();
+    return observable;
+  }
+
   private String getIPByUrl(String str) throws MalformedURLException, UnknownHostException {
     URL urls = new URL(str);
     String host = urls.getHost();
@@ -265,13 +298,11 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("TBGsubscribe中的call方法的线程:" + Thread.currentThread().getName());
               }
             });
-
-    // TODO 验证subscribeOn 和多个observeOn 的情况
-
-    // TODO 验证concat方法
   }
 
   private void concat() {
+    System.out.println("TBG ******************************");
+
     Observable.create(
             new Observable.OnSubscribe<String>() {
               @Override
@@ -303,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
         .subscribeOn(Schedulers.io())
         .subscribe();
 
-    System.out.println("******************************");
+    System.out.println("TBG ******************************");
 
     Observable<String> create1 =
         Observable.create(
@@ -351,4 +382,84 @@ public class MainActivity extends AppCompatActivity {
               }
             });
   }
+
+  private void intervalBackPressure() {
+    // 被观察者将产生100000个事件
+    //    Observable<Integer> observable = Observable.range(1, 1000);
+    //
+    //    observable
+    //            .onBackpressureBuffer()
+    //        .subscribeOn(Schedulers.io())
+    //        .observeOn(AndroidSchedulers.mainThread())
+    //        .subscribe(
+    //            new Subscriber<Integer>() {
+    //              @Override
+    //              public void onStart() {
+    //                super.onStart();
+    ////                request(10);
+    //              }
+    //
+    //              @Override
+    //              public void onCompleted() {
+    //                Log.e("TBG", "onCompleted");
+    //              }
+    //
+    //              @Override
+    //              public void onError(Throwable e) {
+    //                Log.e("TBG", "onError");
+    //              }
+    //
+    //              @Override
+    //              public void onNext(Integer integer) {
+    //                Log.e("TBG", integer + "");
+    //                try {
+    //                  Thread.sleep(10);
+    //                } catch (InterruptedException e) {
+    //                  e.printStackTrace();
+    //                }
+    ////                request(10);
+    //              }
+    //            });
+
+    Observable<Long> observable2 = Observable.interval(1, TimeUnit.MILLISECONDS).take(20);
+
+    observable2
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            new Subscriber<Long>() {
+              @Override
+              public void onStart() {
+                super.onStart();
+                request(1);
+              }
+
+              @Override
+              public void onCompleted() {
+                Log.e("TBG", "onCompleted");
+              }
+
+              @Override
+              public void onError(Throwable e) {
+                Log.e("TBG", "onError:" + e.toString());
+              }
+
+              @Override
+              public void onNext(Long integer) {
+                Log.e("TBG", integer + "");
+                //                try {
+                //                  Thread.sleep(100);
+                //                } catch (InterruptedException e) {
+                //                  e.printStackTrace();
+                //                }
+//                request(1);
+              }
+            });
+  }
+
+  // case1: take（15）、noRequest的情况 : 发射的事件放在了缓存里，onNext中正常处理数据
+  // case2: take（20）、noRequest的情况 : onError:rx.exceptions.MissingBackpressureException
+  // case3: take（20）、request（10）: onError:rx.exceptions.MissingBackpressureException
+  // case4: take（15）、request（10） : 只接收了10条数据，但是由case3可知,发送了15条数据在缓存里
+  // case5: take(15) 、onStart中request(10) ,onNext中request(1);全部接收
 }

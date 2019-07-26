@@ -9,6 +9,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
 
 /*
  * @See <a https://www.jianshu.com/p/ceb48ed8719d />
@@ -17,8 +18,10 @@ public class BackPressure {
 
   public static void main(String[] args) {
     //		  backPressure();
-//          buffer();
-    backPressureDrop();
+    //          buffer();
+    //    backPressureDrop();
+      Observable.just(1,2,3,4,5);
+    interval();
   }
 
   /*Observable在RxJava2.0中新的实现叫做Flowable， 同时旧的Observable也保留了。因为在 RxJava1.x 中，有很多事件不被能正确的背压，从而抛出MissingBackpressureException。
@@ -52,6 +55,7 @@ public class BackPressure {
 
     // 抛出； Caused by: rx.exceptions.MissingBackpressureException
 
+    //      PublishSubject.create().publish();
   }
 
   private static void buffer() {
@@ -77,69 +81,99 @@ public class BackPressure {
 
   // <a https://www.jianshu.com/p/2c4799fa91a4 />
   private static void backPressureDrop() {
-//    Observable.interval(1, TimeUnit.MILLISECONDS, Schedulers.trampoline())
-//        .onBackpressureBuffer(1000) // 设置一个大小为1000的缓存区
-//        .observeOn(Schedulers.newThread())
-//        .subscribe(
-//            new Subscriber<Long>() {
-//
-//              @Override
-//              public void onStart() {
-//                System.out.print("start" + "\n");
-//              }
-//
-//              @Override
-//              public void onCompleted() {}
-//
-//              @Override
-//              public void onError(Throwable e) {
-//                System.out.print("ERROR" + e.toString() + "\n");
-//              }
-//
-//              @Override
-//              public void onNext(Long aLong) {
-//                System.out.print("-->" + aLong + "\n");
-//                try {
-//                  Thread.sleep(100);
-//                   request(1);
-//                  // request(Long.MAX_VALUE);
-//                } catch (InterruptedException e) {
-//                  e.printStackTrace();
-//                }
-//              }
-//            });
+    //    Observable.interval(1, TimeUnit.MILLISECONDS, Schedulers.trampoline())
+    //        .onBackpressureBuffer(1000) // 设置一个大小为1000的缓存区
+    //        .observeOn(Schedulers.newThread())
+    //        .subscribe(
+    //            new Subscriber<Long>() {
+    //
+    //              @Override
+    //              public void onStart() {
+    //                System.out.print("start" + "\n");
+    //              }
+    //
+    //              @Override
+    //              public void onCompleted() {}
+    //
+    //              @Override
+    //              public void onError(Throwable e) {
+    //                System.out.print("ERROR" + e.toString() + "\n");
+    //              }
+    //
+    //              @Override
+    //              public void onNext(Long aLong) {
+    //                System.out.print("-->" + aLong + "\n");
+    //                try {
+    //                  Thread.sleep(100);
+    //                   request(1);
+    //                  // request(Long.MAX_VALUE);
+    //                } catch (InterruptedException e) {
+    //                  e.printStackTrace();
+    //                }
+    //              }
+    //            });
 
+    Observable.interval(1, TimeUnit.MILLISECONDS, Schedulers.trampoline())
+        .onBackpressureDrop() // 此处不起作用,必须在真机上才能模拟出效果
+        .observeOn(Schedulers.newThread())
+        .subscribe(
+            new Subscriber<Long>() {
 
-      Observable.interval(1, TimeUnit.MILLISECONDS,Schedulers.trampoline())
-              .onBackpressureDrop() //此处不起作用,必须在真机上才能模拟出效果
-              .observeOn(Schedulers.newThread())
-              .subscribe(new Subscriber<Long>() {
+              @Override
+              public void onStart() {
+                System.out.print("start" + "\n");
+                //                        request(1);
+              }
 
-                  @Override
-                  public void onStart() {
-                      System.out.print("start" + "\n");
-//                        request(1);
-                  }
+              @Override
+              public void onCompleted() {}
 
-                  @Override
-                  public void onCompleted() {
+              @Override
+              public void onError(Throwable e) {
+                System.out.print("ERROR" + e.toString() + "\n");
+              }
 
-                  }
-                  @Override
-                  public void onError(Throwable e) {
-                      System.out.print("ERROR" + e.toString() + "\n");
-                  }
-
-                  @Override
-                  public void onNext(Long aLong) {
-                      System.out.print("-->" + aLong + "\n");
-                      try {
-                          Thread.sleep(100);
-                      } catch (InterruptedException e) {
-                          e.printStackTrace();
-                      }
-                  }
-              });
+              @Override
+              public void onNext(Long aLong) {
+                System.out.print("-->" + aLong + "\n");
+                try {
+                  Thread.sleep(100);
+                } catch (InterruptedException e) {
+                  e.printStackTrace();
+                }
+              }
+            });
     // 注意：默认缓存大小：16
+  }
+
+  public static void interval() {
+    // 被观察者将产生1000个事件
+    Observable<Long> observable =
+        Observable.interval(1, TimeUnit.MILLISECONDS).take(1000);
+    observable
+        .subscribeOn(Schedulers.trampoline())
+        .observeOn(Schedulers.newThread())
+        .subscribe(
+            new Subscriber<Long>() {
+              @Override
+              public void onStart() {
+                super.onStart();
+              }
+              @Override
+              public void onCompleted() {}
+              @Override
+              public void onError(Throwable e) {
+                System.out.println(e.toString());
+              }
+              @Override
+              public void onNext(Long integer) {
+                System.out.println(integer);
+                try {
+                  Thread.sleep(500);
+                } catch (InterruptedException e) {
+                  e.printStackTrace();
+                }
+              }
+            });
   }
 }
